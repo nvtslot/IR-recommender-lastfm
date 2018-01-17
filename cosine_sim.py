@@ -1,3 +1,5 @@
+import math
+
 def cosine_sim(v1, v2):
 	numer = 0
 	dena = 0
