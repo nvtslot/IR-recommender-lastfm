@@ -16,20 +16,28 @@ def cosine_sim(v1, v2):
 
 
 def main():
+	itemsim = {}
+	try:
+		sim = pickle.load(open("item_sim01", "rb"))
+	except FileNotFoundError:
+		tagged = pickle.load(open("tagged", "rb"))
+		for uid in tagged:
+			itemsim[uid] = {}
+			
+			v1 = tagged[uid]
 
-	tagged = pickle.load(open("tagged", "rb"))
-	for uid in tagged:
-		
-		v1 = tagged[uid]
+			for artist in tagged:
 
-		for artist in tagged:
-			#DONT compare same artists
-			if artist != uid:
-				#only include cosine similarities higher than 0.01
-				if cosine_sim(v1,tagged[artist]) > 0.01:
-					print(uid,artist, cosine_sim(v1,tagged[artist]))
-			else:
-				pass
+				#DONT compare same artists
+				if artist != uid:
+					score = cosine_sim(v1,tagged[artist])
+					#only include cosine similarities higher than 0.01
+					if score > 0.01:
+						itemsim[uid][artist] = score
+
+				else:
+					pass
+		pickle.dump(itemsim, open("item_sim01", "wb"))
 		
 	
 	
