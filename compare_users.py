@@ -20,7 +20,7 @@ def get_listen():
 def main():
 	listen = get_listen()
 	try:
-		sim = pickle.load(open("sim01", "rb"))
+		sim = pickle.load(open("user_sim01", "rb"))
 	except FileNotFoundError:
 		sim = {}
 		for u1 in listen:
@@ -30,7 +30,7 @@ def main():
 					score = cosine_sim(listen[u1],listen[u2])
 					if score > 0.01:
 						sim[u1][u2] = score
-		pickle.dump(sim, open("sim01", "wb"))
+		pickle.dump(sim, open("user_sim01", "wb"))
 	
 	total = 0 # count the total amount of similarity relations
 	for u1 in sim:
