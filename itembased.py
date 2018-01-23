@@ -43,7 +43,7 @@ def alreadyListens(listens):
 """
 
 def test(itemlisten,index,n):
-	similarities = {}
+	suggestions = {}
 	similarband = {}
 	for line in testfile:
 		user, band, count = line.rstrip().split('\t')
@@ -51,14 +51,16 @@ def test(itemlisten,index,n):
 		for band in listensalready:
 			try:
 				similarband = similaritems[band]
-				topNsimilarBands = sorted(similarband.items(),key=operator.itemgetter(1), reverse=True)[:n]
+				topNsimilarBands = sorted(similarband.items(),key=operator.itemgetter(1), reverse=True)
 				
 				
 			except KeyError:
 				pass
 		
-		
-		print(user, '\t', topNsimilarBands)
+		for x in topNsimilarBands:
+			if x[0] not in listensalready:
+				print(user,x)
+		#print(user, '\t', topNsimilarBands)
 	
 		
 
@@ -68,7 +70,7 @@ def test(itemlisten,index,n):
 def main():
     index = indexFile(similaritems)
     #listendict = alreadyListens()
-    doeiets = test(itemlisten,index, 20)
+    doeiets = test(itemlisten,index, 10)
 
 
 if __name__ == "__main__":
