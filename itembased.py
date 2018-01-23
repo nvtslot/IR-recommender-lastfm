@@ -5,7 +5,7 @@ import pickle
 
 # open files
 similaritems = pickle.load(open("item_sim01", "rb"))
-####listens = open('user_artists.dat', 'r')
+#listens = open('user_artists.dat', 'r')
 itemlisten = pickle.load(open("itemlisten", "rb"))
 testfile = open("test.txt", "r")
 
@@ -38,36 +38,40 @@ def alreadyListens(listens):
 	pickle.dump(listendict, open("itemlisten", "wb"))
 	#print(listendict)
 	return listendict
-"""
 
+
+"""
 
 def test(itemlisten,index,n):
 	similarities = {}
+	similarband = {}
 	for testcase in testfile:
-		user, band, count = testcase.rstrip().split('\t')
 
+		user, band, count = testcase.rstrip().split('\t')
 		alreadylistens = itemlisten[user]
-		#print(alreadylistens)
 		for band in alreadylistens:
 			similarband = similaritems[band]
-			
-				#sorted on similaries 
-			if band in similarband:
-				similarities[band].append(similarband)
+			topNsimilarBands = sorted(similarband.items(),
+                                 key=operator.itemgetter(1), reverse=True)[:n]
+			if user in similarities:
+				similarities[user].append(topNsimilarBands)
 			else:
-				similarities[band] = [similarband]
-				
-				topNsimilarband= sorted(similarities.items(), key=operator.itemgetter(1), reverse=True)[:n] 
-				
-				print(band, topNsimilarband)
-		
 
+				similarities[user] = topNsimilarBands
+
+
+	topNsimilar = sorted(similarities.items(), key=operator.itemgetter(1), reverse=True)[:10]
+	print(topNsimilar)
 	
+	
+
+
+
 
 def main():
     index = indexFile(similaritems)
-    #listendict = alreadyListens(listens)
-    doeiets = test(itemlisten,index, 5)
+    #listendict = alreadyListens()
+    doeiets = test(itemlisten,index, 20)
 
 
 if __name__ == "__main__":
