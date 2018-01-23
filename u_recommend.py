@@ -22,17 +22,23 @@ def recommend(sim, listen, u1, n):
 	for u2 in sim[u1]:
 		scores.append((sim[u1][u2],u2))
 	already_listened = [] # will contain all artists that are already listened by the user
-	for artist in listen[u1]:
-		already_listened.append(artist)
+	try:
+		for artist in listen[u1]:
+			already_listened.append(artist)
+	except KeyError:
+		pass
 	popular = [] # a counting list of artists listened to by the n most similar users
 	top_n = sorted(scores,reverse=1)[:n]
 	for tup in top_n:
 		# assign a weight to each top similar user (based on its similarity score)
 		weight = int(tup[0]*100)
-		for artist in listen[tup[1]]:
-			if artist not in already_listened:
-				# add each vip <weight> times to the counting list
-				popular = popular + weight*[artist] 
+		try:
+			for artist in listen[tup[1]]:
+				if artist not in already_listened:
+					# add each vip <weight> times to the counting list
+					popular = popular + weight*[artist] 
+		except KeyError:
+			pass
 	most_popular = [] # will contain the 10 most frequent artists from the popular list
 	for popular_artist in Counter(popular).most_common(10):
 		# count all frequencies in the list and form a top 10
