@@ -7,21 +7,24 @@ import pickle
 similaritems = pickle.load(open("item_sim01", "rb"))
 #listens = open('user_artists.dat', 'r')
 itemlisten = pickle.load(open("itemlisten", "rb"))
-testfile = open("test.txt", "r")
+testfile = open("test.dat", "r")
+trainingfile = open("train.dat", "r")
 
-def indexFile(similaritems):
-	"""indexes the file so that it is faster afterwards"""
-	nr = 1
-	index = {}
-	for line in similaritems:
-		BAND1 = line.split(' ')[0]
-		if (BAND1 not in index):
-			index[BAND1] = [nr]
-		else:
-			index[BAND1].append(nr)
-		nr += 1
+def get_training():
+	with open("train.dat","r") as data:
+		training = {}
+		for line in data.readlines():
+			user, artist, count = line.strip().split("\t")
+			try:
+				training[user][artist] = int(count)
+			except KeyError:
+				training[user] = {}
+				training[user][artist] = int(count)
+	return training
 
-	return index
+def get_test():
+	with open("test.dat","r") as test:
+		return test.readlines()
 
 """
 #####FUNCTION NOT NEEDED ANYMORE AS IT IS NOW INCLUDED IN A PICKLE BUT PLEASE LEAVE HERE FOR CREATION OF NEW PICKLE.
@@ -41,37 +44,42 @@ def alreadyListens(listens):
 
 
 """
-
-def test(itemlisten,index,n):
-	similarities = {}
-	similarband = {}
-	for testcase in testfile:
-
-		user, band, count = testcase.rstrip().split('\t')
-		alreadylistens = itemlisten[user]
-		for band in alreadylistens:
-			similarband = similaritems[band]
-			topNsimilarBands = sorted(similarband.items(),
-                                 key=operator.itemgetter(1), reverse=True)[:n]
-			if user in similarities:
-				similarities[user].append(topNsimilarBands)
-			else:
-
-				similarities[user] = topNsimilarBands
-
-
-	topNsimilar = sorted(similarities.items(), key=operator.itemgetter(1), reverse=True)[:10]
-	print(topNsimilar)
+def recommend(sim, itemlisten,u1, n):
+	scores = []
+	already_listened = []
+	similarartist = {}
+	try:
+		for artist in itemlisten[u1]:
+			already_listened.append(artist) #user already listend to these artist
+	except KeyError:
+		pass
+	try:
+		for artist in already_listened:
+			similarartist[u1] = similaritems[artist]
+			
+			
+	except KeyError:
+		pass
 	
+	print(u1,'\t',similarartist)
 	
-
-
+		
 
 
 def main():
-    index = indexFile(similaritems)
-    #listendict = alreadyListens()
-    doeiets = test(itemlisten,index, 20)
+	sim = pickle.load(open("item_sim01", "rb"))
+	training = get_training()
+	test = get_test()
+	score = 0
+	for line in test:
+		user, artist = line.split()[:2]
+		# get 10 recommended vips for every user
+		recommended = recommend(sim, training, user, n=10)
+		#hit = int(artist in recommended) # determine whether the vip was predicted or not
+		# print(user, vip, " ".join(most_popular), hit)
+		#score += hit
+	#print("Score: {} from {}\nPercentage: {:.2f}%".format(score, len(test), 100*score/len(test)))
+
 
 
 if __name__ == "__main__":
