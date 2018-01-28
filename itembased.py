@@ -1,26 +1,8 @@
-# item based recommender on LAST.fm data
+# item-based recommender on Last.FM data
 # Nik van 't Slot, Karel Beckeringh, Wessel Reijngoud
 
-import pickle
 from collections import defaultdict
-
-def get_train():
-	"""Opens training dataset"""
-	with open("train.dat","r") as data:
-		training = {}
-		for line in data.readlines():
-			user, artist, count = line.strip().split("\t")
-			try:
-				training[user][artist] = int(count)
-			except KeyError:
-				training[user] = {}
-				training[user][artist] = int(count)
-	return training
-
-def get_test():
-	"""Opens test dataset"""
-	with open("test.dat","r") as test:
-		return test.readlines()
+from get import get_itemsim, get_train, get_test
 
 def recommend(sim, train, u1, n):
 	"""For every user it creates a top 10 most listened to artists, from that top 10 it creates
@@ -49,7 +31,7 @@ def recommend(sim, train, u1, n):
 			pass
 		topNsimilar = sorted(scores,reverse=1)[:n]
 		
-		# creates weight per similar band and add to popular list
+		# creates weight per similar artist and add to defaultdict
 		for similarity_tup in topNsimilar:
 			similarity, similar_artist = similarity_tup
 			if artist not in already_listened: # only consider new artists
@@ -60,10 +42,7 @@ def recommend(sim, train, u1, n):
 
 
 def main():
-	"""Runs recommendation program"""
-
-	sim = pickle.load(open("item_sim50", "rb")) # opens item similarity file (1.1 million similarity relations)
-	train, test = get_train(), get_test()
+	sim, train, test = get_itemsim(), get_train(), get_test()
 	score = 0
 
 	for line in test:
@@ -73,16 +52,7 @@ def main():
 		hit = int(artist in recommended) # determine whether the artist was recommended/predicted or not
 		score += hit
 
-	print("Score: {} from {}\nAccuracy: {:.2f}%".format(score, len(test), 100*score/len(test))) # prints in desired format
-
-	"""
-	# count the total amount of similarity relations
-	total = 0
-	for u1 in sim:
-		for u2 in sim[u1]:
-			total += 1
-	print(total)
-	"""
+	print("Score: {} from {}\nAccuracy: {:.2f}%".format(score, len(test), 100*score/len(test)))
 
 if __name__ == '__main__':
 	main()
