@@ -1,6 +1,10 @@
 # IR-recommender-lastfm
-Recommender system for Last.FM
+Recommender system for Last.fm
 
-Dataset download: https://grouplens.org/datasets/hetrec-2011/
+Contains following programs:
+Itembased recommender
+Userbased recommender
+Friendbased recommender
 
-Dataset info: http://files.grouplens.org/datasets/hetrec2011/hetrec2011-lastfm-readme.txt
+If you downloaded all the files correctly and extracted all to the same directory. Then the programs could all be run from the terminal using the command: python3 *programname.py*
+
