@@ -2,10 +2,9 @@
 # Nik van 't Slot, Karel Beckeringh, Wessel Reijngoud
 
 import pickle
-from collections import Counter
-from time import time
+from collections import defaultdict
 
-def get_training():
+def get_train():
 	"""Opens training dataset"""
 	with open("train.dat","r") as data:
 		training = {}
@@ -36,12 +35,11 @@ def recommend(sim, train, u1, n):
 		pass
 	topNlistened = sorted(already_listened,reverse=1)[:n]
 	
-	popular = []
+	popular = defaultdict(int) # will contain each recommended artist and their cumulative weights
 
 	# create top N similar artists for top N listened artists
 	for listen_tup in topNlistened:
-		listencount = listen_tup[0]
-		artist = listen_tup[1]
+		listencount, artist = listen_tup
 		scores = []
 		try:
 			for sim_artist in sim[artist]:
@@ -53,41 +51,38 @@ def recommend(sim, train, u1, n):
 		
 		# creates weight per similar band and add to popular list
 		for similarity_tup in topNsimilar:
-			similarity = similarity_tup[0]
-			similar_artist = similarity_tup[1]
-			weight = int(similarity*listencount) # creates a weight using similarity scores and listencount
-			popular = popular + weight*[similar_artist]
+			similarity, similar_artist = similarity_tup
+			if artist not in already_listened: # only consider new artists
+				weight = similarity*listencount # creates a weight using similarity scores and listencount
+				popular[similar_artist] += weight
 
-	
-		most_popular = [] # will contain the 10 most frequent artists from the popular list
-	for popular_artist in Counter(popular).most_common(10):
-		# count all frequencies in the list and form a top 10
-		most_popular.append(popular_artist[0]) 
-	return most_popular
+	return sorted(popular,key=popular.get,reverse=True)[:10]
 
 
 def main():
-	"""Runs recommendation program, took 15 min to complete on our laptop"""
+	"""Runs recommendation program"""
 
-	sim = pickle.load(open("item_sim01", "rb")) # opens item similarity file (23million lines)
-	train = get_training()
-	test = get_test()
+	sim = pickle.load(open("item_sim50", "rb")) # opens item similarity file (1.1 million similarity relations)
+	train, test = get_train(), get_test()
 	score = 0
-
-	start = time() #used to time
-	c =0
 
 	for line in test:
 		user, artist = line.split()[:2]
 		# get 10 recommended artists for every user
 		recommended = recommend(sim, train, user, n=10)
-		hit = int(artist in recommended) # determine whether the vip was predicted or not
+		hit = int(artist in recommended) # determine whether the artist was recommended/predicted or not
 		score += hit
-		if c % 500 == 0: # prints time per 500 users done.
-			print(c, time() - start)
-		c+=1
 
-	print("Score: {} from {}\nPercentage: {:.2f}%".format(score, len(test), 100*score/len(test))) # prints in desired format
+	print("Score: {} from {}\nAccuracy: {:.2f}%".format(score, len(test), 100*score/len(test))) # prints in desired format
+
+	"""
+	# count the total amount of similarity relations
+	total = 0
+	for u1 in sim:
+		for u2 in sim[u1]:
+			total += 1
+	print(total)
+	"""
 
 if __name__ == '__main__':
 	main()

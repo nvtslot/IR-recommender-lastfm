@@ -31,7 +31,7 @@ def get_tagged():
 	except FileNotFoundError:
 		tagged = {}
 		with open("user_taggedartists.dat", "r") as data:
-			for line in data.readlines():
+			for line in data.readlines()[1:]:
 				artist, tag = line.split("\t")[1:3]
 				if artist not in tagged:
 					tagged[artist] = {}
@@ -43,13 +43,13 @@ def get_tagged():
 		return tagged
 
 def main():
-	artist_ID = get_artist_ID()
-	tag_ID = get_tag_ID()
+	#artist_ID = get_artist_ID()
+	#tag_ID = get_tag_ID()
 	tagged = get_tagged()
-	i = "10885"
-	print(artist_ID[i])
-	for x in tagged[i]:
-		print(tagged[i][x], tag_ID[x])
+	"""i = "1642"
+				print(artist_ID[i])
+				for x in tagged[i]:
+					print(tagged[i][x], tag_ID[x])"""
 
 if __name__ == '__main__':
 	main()

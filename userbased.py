@@ -1,64 +1,67 @@
-import pickle
-from collections import Counter
+# user-based recommender on Last.FM data
+# Nik van 't Slot, Karel Beckeringh, Wessel Reijngoud
 
-def get_training():
+import pickle
+from collections import defaultdict
+
+def get_train():
+	"""Opens training dataset"""
 	with open("train.dat","r") as data:
-		training = {}
+		train = {}
 		for line in data.readlines():
 			user, artist, count = line.strip().split("\t")
 			try:
-				training[user][artist] = int(count)
+				train[user][artist] = int(count)
 			except KeyError:
-				training[user] = {}
-				training[user][artist] = int(count)
-	return training
+				train[user] = {}
+				train[user][artist] = int(count)
+	return train
 
 def get_test():
+	"""Opens test dataset"""
 	with open("test.dat","r") as test:
 		return test.readlines()
 
-def recommend(sim, listen, u1, n):
-	scores = []
+def recommend(sim, train, u1, n):
+	"""For every user it creates a top n list containing the most similar users. The artists most listened to 
+	by these similar users will be recommended, if not already followed by the user. The similarity score of 
+	each similar user determines the weight of their recommendation."""
+	scores = [] # will contain the similarity scores between the user and its similar users
 	for u2 in sim[u1]:
 		scores.append((sim[u1][u2],u2))
-	already_listened = [] # will contain all artists that are already listened by the user
+
+	already_listened = [] # will contain all artists that are already listened to by the user
 	try:
-		for artist in listen[u1]:
+		for artist in train[u1]:
 			already_listened.append(artist)
 	except KeyError:
 		pass
-	popular = [] # a counting list of artists listened to by the n most similar users
+
+	popular = defaultdict(int) # will contain each recommended artist and their cumulative weights
 	top_n = sorted(scores,reverse=1)[:n]
 	for tup in top_n:
-		# assign a weight to each top similar user (based on its similarity score)
-		weight = int(tup[0]*100)
+		similarity, similar_user = tup
 		try:
-			for artist in listen[tup[1]]:
-				if artist not in already_listened:
-					# add each vip <weight> times to the counting list
-					popular = popular + weight*[artist] 
+			for artist in train[similar_user]:
+				if artist not in already_listened: # only consider new artists
+					popular[artist] += similarity # weight recommendation by user similarity score
 		except KeyError:
 			pass
-	most_popular = [] # will contain the 10 most frequent artists from the popular list
-	for popular_artist in Counter(popular).most_common(10):
-		# count all frequencies in the list and form a top 10
-		most_popular.append(popular_artist[0]) 
-	return most_popular
+
+	# sort the defaultdict and return the 10 best recommendations
+	return sorted(popular,key=popular.get,reverse=True)[:10]
 
 def main():
-	# listen = pickle.load(open("listen", "rb"))
 	sim = pickle.load(open("user_sim01", "rb"))
-	training = get_training()
-	test = get_test()
+	train, test = get_train(), get_test()
 	score = 0
 	for line in test:
 		user, artist = line.split()[:2]
-		# get 10 recommended vips for every user
-		recommended = recommend(sim, training, user, n=10)
-		hit = int(artist in recommended) # determine whether the vip was predicted or not
-		# print(user, vip, " ".join(most_popular), hit)
+		# get 10 recommended artist for every user
+		recommended = recommend(sim, train, user, n=10)
+		hit = int(artist in recommended) # determine whether the artist was recommended/predicted or not
 		score += hit
-	print("Score: {} from {}\nPercentage: {:.2f}%".format(score, len(test), 100*score/len(test)))
+	print("Score: {} from {}\nAccuracy: {:.2f}%".format(score, len(test), 100*score/len(test)))
 
 if __name__ == '__main__':
 	main()
