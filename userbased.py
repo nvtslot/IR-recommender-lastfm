@@ -58,7 +58,7 @@ def main():
 	for line in test:
 		user, artist = line.split()[:2]
 		# get 10 recommended artist for every user
-		recommended = recommend(sim, train, user, n=10)
+		recommended = recommend(sim, train, user, n=34)
 		hit = int(artist in recommended) # determine whether the artist was recommended/predicted or not
 		score += hit
 	print("Score: {} from {}\nAccuracy: {:.2f}%".format(score, len(test), 100*score/len(test)))
